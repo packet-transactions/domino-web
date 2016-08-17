@@ -245,9 +245,11 @@ subset and then check their utility for another subset.
 <dt><p>Are these atoms practical?</p></dt>
 <dd>
 <p>
-Yes. We wrote these atoms as Verilog circuits and synthesized them to a recent
-32-nm transistor library. All atoms meet timing at 1 GHz (the clock rate of a
-typical switch pipeline) and cost very little area in silicon.
+Yes. We wrote these atoms as
+<a href="https://github.com/packet-transactions/atomsyn">Verilog circuits</a> and
+synthesized them to a recent 32-nm transistor library. All atoms meet timing at
+1 GHz (the clock rate of a typical switch pipeline) and cost very little area
+in silicon. These numbers are available in Table 4 of the paper.
 </p>
 </dd>
 
@@ -277,7 +279,7 @@ compiler for this platform is something for future work.
 
 <dt><p>How does this relate to software-defined networking?</p></dt>
 <dd><p>
-Software-defined networking (SDN)---at least as embodied by OpenFlow---allows an
+Software-defined networking---at least as embodied by OpenFlow---allows an
 operator to flexibly specify the router's control plane: e.g., which packets
 should take which paths within the network (routing), and whether packets on
 certain ports should be dropped (access control). It does so by exposing a
