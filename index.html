@@ -1,22 +1,429 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-<meta http-equiv="cache-control" content="max-age=0" />
-<meta http-equiv="cache-control" content="no-cache" />
-<meta http-equiv="expires" content="0" />
-<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-<meta http-equiv="pragma" content="no-cache" />
+  ga('create', 'UA-42573039-1', 'mit.edu');
+  ga('send', 'pageview');
 
-<title>
-Bare bones site for Domino/Packet Transactions project
-</title>
-<body>
-<ol>
-<li><a href="http://arxiv.org/abs/1512.05023">arXiv preprint of SIGCOMM'16 paper on Domino</a>
-<li><a href="https://github.com/packet-transactions">Github organization for project</a>
-<li><a href="https://github.com/packet-transactions/domino">Source code repository for the Domino compiler</a>
-<li><a href="https://github.com/packet-transactions/jayhawk">Source code repository for the fuzz testing infrastructure for Domino</a>
-<li><a href="https://github.com/packet-transactions/banzai">Source code repository for the Banzai machine model</a>
-<li><a href="https://github.com/packet-transactions/domino-examples">Source code repository for the examples used in the SIGCOMM paper</a>
-</ol>
-</body>
+</script>
+    <meta charset="utf-8">
+    <title>Domino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Le styles -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 20px;
+        padding-bottom: 40px;
+      }
+
+      /* Custom container */
+      .container-narrow {
+        margin: 0 auto;
+        max-width: 700px;
+      }
+      .container-narrow > hr {
+        margin: 30px 0;
+      }
+
+      /* Main marketing message and sign up button */
+      .jumbotron {
+        margin: 10px 0;
+        text-align: center;
+      }
+      .jumbotron h1 {
+        font-size: 72px;
+        line-height: 1;
+      }
+      .jumbotron .btn {
+        font-size: 21px;
+        padding: 14px 24px;
+      }
+
+      /* Supporting marketing content */
+      .marketing {
+        margin: 60px 0;
+      }
+      .marketing p + h4 {
+        margin-top: 28px;
+      }
+    </style>
+    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="assets/js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+  </head>
+
+  <body>
+
+    <div class="container-narrow">
+
+      <div class="masthead">
+        <h3><span class="text-error">Packet Transactions: High-Level Programming for Line-Rate Switches</h3>
+	<p class="text-right muted">
+        by Anirudh Sivaraman, Alvin Cheung, Mihai Budiu, Changhoon Kim, Mohammad Alizadeh,<br/>
+        Hari Balakrishnan, George Varghese, Nick McKeown, and Steve Licking<br/>
+<br />
+	MIT CSAIL, University of Washington, Barefoot Networks, Microsoft Research, and Stanford University<br />
+	(SIGCOMM 2016)</p>
+
+      </div>
+      <hr>
+
+      <div class="jumbotron">
+	<p class="text-left lead">
+     Domino is a system to program the data plane of high-speed programmable
+     routers and help design such programmable routers in the first place. Domino
+     provides two constructs: a high-level abstraction called a packet transaction
+     that allows programmers to conveniently express data-plane algorithms, and a
+     low-level abstraction called an atom that allows router designers to specify
+     their instruction sets. A compiler automatically configures atoms from packet
+     transactions, and can also be used interactively to design atoms.
+</p>
+
+        <a class="btn btn-primary" href="domino-sigcomm.pdf">The Domino paper</a>
+        <a class="btn btn-success" href=#instructions>Source code</a>
+      </div>
+
+      <hr>
+      <section id="faq">
+	<div class="page-header">
+	  <h3>Frequently Asked Questions</h3>
+	</div>
+
+	<div class="row">
+	<div class="span8">
+	  <dl>
+
+<dt><p>What motivated this work?</p></dt>
+<dd><p>
+Today, the internals of a data network (i.e., the routers and switches that
+forward packets) are largely treated as fixed devices whose functionality
+cannot be modified. This is because they are built out of dedicated hardware
+specialized to forwarding. Further, this hardware cannot be modified once built.
+</p>
+
+<p>
+ As a result, there is no pathway to trying out any algorithm that requires
+changing switch hardware. Examples of these include algorithms for network
+measurement, congestion control with network support, network security
+algorithms and load balancing---essentially anything that modifies or inspects
+the packet (header or data) as it transits the switch. Our goal was to see how
+to make router hardware flexible enough to support such algorithms, while
+still providing high performance.
+</p></dd>
+
+<dt><p>How does Domino work?</p></dt>
+<dd><p> The Domino system has three main ideas. First is an abstraction for
+programming algorithms called packet transactions and an imperative language,
+called Domino, to program them. Second is a model for how switch hardware
+called Banzai, which allows us to experiment with different switches in
+simulation.  Third, a compiler from Domino programs to Banzai switches. We
+describe each below.  </p>
+
+<p>
+A programmer first writes code for a packet-processing algorithm using a packet
+transaction. A packet transaction is a block of code written in an imperative
+language called Domino. Intuitively, packet transactions capture the packet
+processing logic for any packet. An <a href="https://github.com/packet-transactions/domino-examples/blob/master/domino_programs/sampling.c">example</a> of a packet transaction is an
+algorithm that counts from 0 to N-1 and samples every Nth packet. Other examples
+used in our paper are available
+<a href="https://github.com/packet-transactions/domino-examples/blob/master/domino_programs">here</a>.
+</p>
+
+<p>
+ Packet transactions provide simple semantics: the programmer sees transactions
+executing serially across packets with no overlap of transaction execution
+between packets. The underlying switch hardware, however, is heavily pipelined,
+with several tens of pipeline stages operating on every packet.
+</p>
+
+<p>
+To represent this hardware and experiment with different switch hardware,
+we created a machine model called Banzai. Banzai is a C++ <a
+href="https://github.com/packet-transactions/banzai">simulator</a> of
+programmable switch hardware.
+</p>
+
+<p> To represent the hardware's instruction set, we introduced the notion of an
+atom, which represents atomic operations that are supported natively by the
+switch hardware. Atoms are atomic in the sense that any updates to switch state
+as part of the atom's operation are visible to the next packet arriving at that
+atom. <a href="https://github.com/packet-transactions/domino-examples/blob/master/banzai_atoms/raw.sk">
+One example atom</a> allows the programmer to increment a switch counter by a
+programmable packet field, the updated value of the counter is available to the
+very next packet. Several example atoms are available <a href="https://github.com/packet-transactions/domino-examples/blob/master/banzai_atoms">here</a>. </p>
+
+<p>Banzai lets us experiment with different programmable switches by creating
+an array of such atoms: the horizontal axis represents the number of stages in
+the pipeline and the vertical axis represents the number of atoms that can operate
+in parallel on a packet in each stage. </p>
+
+<p> The final piece is the <a href="https://github.com/packet-transactions/domino">compiler</a>, which goes from packet transactions to
+atom configurations. Unlike a traditional compiler, however, the Domino
+compiler can reject programs because they cannot be supported by the switch's
+atoms. As an example, an algorithm that needs to atomically increment a counter
+will not run on hardware that doesn't provide an atom for this counter. This is
+unavoidable: a switch pipeline is designed to run at a specific rate (also known
+as the line rate) regardless
+of the workload thrown at it, so some programs will inevitably be too complex
+for the pipeline.  </p>
+
+<p class="text-center"><img width="600" src="overview.png"></p>
+
+</dd>
+
+<dt><p>What algorithms can/can't you express in Domino?</p></dt>
+<dd>
+<p> Formally, any algorithm that doesn't have an unbounded for loop. The Domino
+language doesn't have for loops because there is no sensible ways to process a
+packet forever in a switch that guarantees line rate under all circumstances.
+Domino also forbids acess to packet payloads, which is required for algorithms
+like deep-packet inspection, because it is challenging to parse these payloads
+at the high speeds supported by switches today.
+</p>
+
+<!-- -->
+<!-- <p> Informally, a fairly diverse set of <a -->
+<!-- href="https://github.com/packet-transactions/domino-examples/">algorithms</a> -->
+<!-- that span measurement, congestion control, scheduling, security, and load -->
+<!-- balancing.  </p> -->
+
+</dd>
+
+<dt><p>How does the compiler work?</p></dt>
+<dd>
+<p> The compiler has two main steps. First, it goes from the sequential packet
+transaction provided by the programmer to a pipeline of
+codelets: small code fragments that, if run atomically, guarantee the packet
+transaction's semantics. This process requires us to track dependencies between
+different operations within the same packet transaction, and more importantly,
+different operations across different packet transactions (through state
+variables). Section 4.2 of the paper explains this in further detail. </p>
+
+<p> Once we have the codelet pipeline, we map each codelet in the pipeline to
+an atom available in the hardware. To do this, we ask the question: can we
+configure the atom so that it implements a given codelet? By configuring the
+atom, we mean setting certain configuration bits such as the choice of which
+packet field to add to an atomic counter, or an immediate operand used by the
+atom. This is exactly the problem tackled by <a
+href="https://people.csail.mit.edu/asolar/papers/asplos06-final.pdf">program
+sketching</a>, where "holes" in an incomplete program (in our case,
+configuration bits in an atom) need to be filled up to match a spec (codelets).
+</p>
+
+<p>
+For this atom mapping problem, we use the <a
+href="https://people.csail.mit.edu/asolar/manual.pdf">SKETCH tool</a>,
+which implements the algorithm from the program sketching paper above. As a
+result, we directly use SKETCH as the language to <a
+href="https://github.com/packet-transactions/domino-examples/blob/master/banzai_atoms">
+represent our atoms</a>.
+</p>
+</dd>
+
+<dt><p>How did you design the atoms?</p></dt>
+<dd>
+<p>
+We went through some of our example programs, and identified stateful
+operations in them. We then created an atom covering these operations.  For
+example, a bloom filter requires the ability to either read or write a bit in
+an array, but not the ability to read, add, and write back.
+</p>
+
+<p>
+With the atom we just created to read/write a bit, we tried to compile more example programs.
+Inevitably, some program wouldn't compile. For instance, a heavy-hitter
+detection algorithm employs a count-min sketch, which internally requires the
+ability to increment an array entry, which the simpler read/write atom above
+can't support. We keep iterating till we can generate a single atom that covers all
+the algorithms we care about.
+</p>
+</dd>
+
+<dt><p>Do these atoms generalize to unanticipated use cases?</p></dt>
+
+<dd>
+<p>
+We don't know for sure. We looked at a subset of our <a
+href="https://github.com/packet-transactions/domino-examples/blob/master/domino_programs">examples</a>
+to design our 7 atoms. We found that some atoms that we designed for one
+algorithm also turned out to be useful for a new one: for instance, we designed
+the <a href="https://github.com/packet-transactions/domino-examples/blob/master/banzai_atoms/pred_raw.sk">predicated read-add-write atom</a> (conditionally update a running sum)
+with <a href="https://github.com/packet-transactions/domino-examples/blob/master/domino_programs/flowlets.c">flowlet switching</a> in mind,
+but it turned out to be useful for the <a href="https://github.com/packet-transactions/domino-examples/blob/master/domino_programs/rcp.c">Rate-Control Protocol</a> as well.
+</p>
+
+<p>
+Whether this is more generally true is an interesting question that we don't have
+an answer to. While we took
+some care to ensure we were developing future-proof atoms, answering this question
+would require us to create a corpus of algorithms, design atoms based on one
+subset of the corpus, and then check their utility for a disjoint subset.
+</p>
+</dd>
+
+<dt><p>Are these atoms practical?</p></dt>
+<dd>
+<p>
+Yes. We wrote these atoms as
+<a href="https://github.com/packet-transactions/atomsyn">Verilog circuits</a> and
+synthesized them to a recent 32-nm transistor library. All atoms meet timing at
+1 GHz (the clock rate of a typical switch pipeline) and cost very little area
+in silicon. These numbers are available in Table 4 of the <a href="http://web.mit.edu/domino/domino-sigcomm.pdf">paper</a> and are also reproduced below.
+
+<p class="text-center"><img width="800" src="table.png"></p>
+
+</p>
+</dd>
+
+<dt><p>What if the compiler rejects the program?</p></dt>
+<dd>
+<p>
+For now, the programmer modifies the program and tries it again. You could
+imagine running an "approximated version" of the program, or providing compiler
+hints that tell the programmer how to fix it. The right interface to a
+programmer when the program is rejected is still unclear. However, one
+thing is inherent to a programmable switch: there will be programs that cannot
+be run with transactional semantics at line rate, so we either need to reject
+them or relax their semantics. This is unlike a software router, where all
+programs run, but program performance is variable and depends on program
+complexity.
+</p>
+</dd>
+</dd>
+
+<dt><p>Does the compiler accept all programs that can run on the switch?</p></dt>
+<dd>
+<p>
+No, the compiler does the best it can and doesn't currently optimize very much.
+For instance, it may be possible (and desirable) to "fuse" two codelets into
+the same atom, when a switch is strapped for atoms. However, by not carrying
+out this and other potential optimizations, the compiler may conservatively
+reject a correct program.
+</p>
+</dd>
+
+<dt><p>How does this relate to software-defined networking?</p></dt>
+<dd><p>
+Software-defined networking---at least as embodied by OpenFlow---allows an
+operator to flexibly specify the router's control plane: e.g., which packets
+should take which paths within the network (routing), and whether packets on
+certain ports should be dropped (access control). It does so by exposing a
+unified interface to the routing tables across many switches (OpenFlow) and
+allowing a central entity (the control program) to populate these routing
+tables as desired.
+</p>
+
+<p>
+To ensure it caters to the common denominator of switches, OpenFlow doesn't
+allow you to change the fundamental packet processing functionality of the
+switch: it is still restricted to standard forwarding based on exact, ternary,
+or longest-prefix matches. This work can be viewed as extending the benefits of
+software-defined networking to programming the data plane as well.
+</p></dd>
+
+<dt><p>How does this relate to recent work on programmable switches?</p></dt>
+<dd>
+<p>
+This work is certainly inspired by work on programmable switch architectures.
+However, these switches still support fairly limited state manipulation at high
+speed (e.g., incrementing a counter). One of our goals was to formalize
+these emerging switch architectures through a simple machine model (Banzai)
+that captures their essence.
+</p>
+</dd>
+
+<dt><p>How does this relate to P4?</p></dt>
+<dd>
+<p>
+The P4 programming language is ideally suited to programming packet-processing
+tasks that don't manipulate state on the switch, e.g., packet forwarding and
+access control. However, it's a very low-level interface for programming
+data-plane algorithms that manipulate state because it requires us to manually
+configure a programmable switch pipeline to implement the algorithm. For many
+algorithms, e.g., <a
+href="http://queue.acm.org/appendices/codel.html">CoDel</a>, the algorithm is
+best expressed as a snippet of code in an imperative language.
+</p>
+<p>
+Our compiler backend can autogenerate P4 from packet transactions written in
+the Domino language. Looking to the future, we hope this work informs
+high-level abstractions for P4.
+</p>
+</dd>
+
+	  </dl>
+	</div>
+	</div>
+      </section>
+
+      <section id="instructions">
+	<div class="page-header">
+	  <h3>Getting Started</h3>
+	</div>
+        <ol>
+        <li> There are two pieces of software to install. Each has a README with rough installation instructions.
+        <li> These instructions should work on a recent Ubuntu or Mac OS/X. If you have trouble, please email us!
+        <li> First, install the <a href="https://github.com/packet-transactions/banzai">Banzai machine</a>.
+        <li> Second, install the <a href="https://github.com/packet-transactions/domino-compiler">Domino compiler</a>.
+         <li> Then, compile the programs available <a href="https://github.com/packet-transactions/domino-examples">here</a>, using either run_expts.py (to run multiple programs on multiple atom types) or compile.sh (to run a single program on a single atom type).
+         <li> run_expts.py should take around 10 minutes to complete using the inputs domino_programs.list and atom_templates.list. compile.sh should take under a minute for most programs.
+        </ol>
+      </section>
+
+      <section id="contact">
+	<div class="page-header">
+	  <h3>Contact</h3>
+	</div>
+
+	<p>This work is by
+        <a href="http://web.mit.edu/anirudh/www/">Anirudh Sivaraman</a>,
+        <a href="https://homes.cs.washington.edu/~akcheung/">Alvin Cheung</a>,
+        <a href="http://budiu.info/work/">Mihai Budiu</a>,
+        <a href="https://www.linkedin.com/in/changhoon-kim-b3394317">Changhoon Kim</a>,
+        <a href="https://people.csail.mit.edu/alizadeh/">Mohammad Alizadeh</a>,
+        <a href="http://nms.lcs.mit.edu/~hari/">Hari Balakrishnan</a>,
+        <a href="https://cseweb.ucsd.edu/~varghese/">George Varghese</a>,
+        <a href="http://yuba.stanford.edu/~nickm/">Nick McKeown</a>, and
+        <a href="https://www.linkedin.com/in/steve-licking-a731742">Steve Licking</a>.
+        For questions/comments, please e-mail <code>anirudh at csail dot mit dot
+        edu</code></p>
+
+      </section>
+
+      <div class="footer">
+        <!-- <p>&copy; Company 2013</p> --!>
+      </div>
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="assets/js/jquery-2.0.3.min.js"></script>
+    <script src="assets/js/bootstrap-transition.js"></script>
+    <script src="assets/js/bootstrap-alert.js"></script>
+    <script src="assets/js/bootstrap-modal.js"></script>
+    <script src="assets/js/bootstrap-dropdown.js"></script>
+    <script src="assets/js/bootstrap-scrollspy.js"></script>
+    <script src="assets/js/bootstrap-tab.js"></script>
+    <script src="assets/js/bootstrap-tooltip.js"></script>
+    <script src="assets/js/bootstrap-popover.js"></script>
+    <script src="assets/js/bootstrap-button.js"></script>
+    <script src="assets/js/bootstrap-collapse.js"></script>
+    <script src="assets/js/bootstrap-carousel.js"></script>
+    <script src="assets/js/bootstrap-typeahead.js"></script>
+
+  </body>
 </html>
