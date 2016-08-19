@@ -316,7 +316,7 @@ reject a correct program.
 
 <dt><p>How does this relate to software-defined networking?</p></dt>
 <dd><p>
-Software-defined networking---at least as embodied by OpenFlow---allows an
+Software-defined networking---at least as embodied by <a href="http://www.sigcomm.org/sites/default/files/ccr/papers/2008/April/1355734-1355746.pdf">OpenFlow</a>---allows an
 operator to flexibly specify the router's control plane: e.g., which packets
 should take which paths within the network (routing), and whether packets on
 certain ports should be dropped (access control). It does so by exposing a
@@ -336,8 +336,9 @@ software-defined networking to programming the data plane as well.
 <dt><p>How does this relate to recent work on programmable switches?</p></dt>
 <dd>
 <p>
-This work is certainly inspired by work on programmable switch architectures.
-However, these switches still support fairly limited state manipulation at high
+This work is certainly inspired by work on <a href="http://yuba.stanford.edu/~grg/docs/sdn-chip-sigcomm-2013.pdf">programmable switch architectures</a>.
+However, <a href="http://www.cavium.com/XPliant-Ethernet-Switch-Product-Family.html">these</a>
+<a href="http://www.intel.com/content/www/us/en/ethernet-products/switch-silicon/ethernet-switch-fm6000-sdn-paper.html">switches</a> still support fairly limited state manipulation at high
 speed (e.g., incrementing a counter). One of our goals was to formalize
 these emerging switch architectures through a simple machine model (Banzai)
 that captures their essence.
@@ -347,7 +348,7 @@ that captures their essence.
 <dt><p>How does this relate to P4?</p></dt>
 <dd>
 <p>
-The P4 programming language is ideally suited to programming packet-processing
+The <a href="http://p4.org">P4</a> programming language is ideally suited to programming packet-processing
 tasks that don't manipulate state on the switch, e.g., packet forwarding and
 access control. However, it's a very low-level interface for programming
 data-plane algorithms that manipulate state because it requires us to manually
